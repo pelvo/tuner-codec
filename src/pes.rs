@@ -1141,7 +1141,9 @@ mod tests {
         const ALIGNED_TOTAL_BYTE_COUNT: usize =
             UNALIGNED_TOTAL_BYTE_COUNT - (UNALIGNED_TOTAL_BYTE_COUNT % 184);
         const PAYLOAD_BYTE_COUNT: usize = ALIGNED_TOTAL_BYTE_COUNT - PES_HEADER_BYTE_COUNT;
-        let payload: Vec<u8> = (0..PAYLOAD_BYTE_COUNT).map(|index| (index % 256) as u8).collect();
+        let payload: Vec<u8> = (0..PAYLOAD_BYTE_COUNT)
+            .map(|index| (index % 256) as u8)
+            .collect();
         let pes = unbounded_video_pes_packet(0xE0, 90_000, &payload);
         let video_packets = transport_packets(VIDEO_PID, &pes, 0);
 
@@ -1159,8 +1161,7 @@ mod tests {
         // unbounded (declared-length-zero) PES: the assembler has no other
         // signal that the access unit ended.
         let closing_pes = pes_packet(0xE0, Some(90_100), None, &[0xAB; 8]);
-        let closing_packets =
-            transport_packets(VIDEO_PID, &closing_pes, video_packets.len() as u8);
+        let closing_packets = transport_packets(VIDEO_PID, &closing_pes, video_packets.len() as u8);
 
         let mut unbounded = PesDemux::with_max(UNBOUNDED_MAX_PES);
         unbounded.watch(VIDEO_PID);
@@ -1206,7 +1207,9 @@ mod tests {
         const ALIGNED_TOTAL_BYTE_COUNT: usize =
             UNALIGNED_TOTAL_BYTE_COUNT - (UNALIGNED_TOTAL_BYTE_COUNT % 184);
         const PAYLOAD_BYTE_COUNT: usize = ALIGNED_TOTAL_BYTE_COUNT - PES_HEADER_BYTE_COUNT;
-        let payload: Vec<u8> = (0..PAYLOAD_BYTE_COUNT).map(|index| (index % 256) as u8).collect();
+        let payload: Vec<u8> = (0..PAYLOAD_BYTE_COUNT)
+            .map(|index| (index % 256) as u8)
+            .collect();
         let pes = unbounded_video_pes_packet(0xE0, 90_000, &payload);
         let video_packets = transport_packets(VIDEO_PID, &pes, 0);
 
@@ -1214,10 +1217,7 @@ mod tests {
         declared.watch(VIDEO_PID);
         let error = video_packets
             .iter()
-            .find_map(|packet| match declared.push_parsed(packet) {
-                Ok(_) => None,
-                Err(error) => Some(error),
-            })
+            .find_map(|packet| declared.push_parsed(packet).err())
             .expect("a PES this large must exceed the declared-length cap before the feed ends");
 
         let PacketizedElementaryStreamError::PacketTooLarge { maximum, actual } = error else {

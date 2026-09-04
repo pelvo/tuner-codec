@@ -15,3 +15,11 @@ categories = ["encoding", "multimedia", "parser-implementations"]
 [dependencies]
 # None. MULTI2 and MPEG-TS/PES framing are implemented directly from the
 # published standards.
+
+# `as_chunks` (which clippy's chunks_exact_to_as_chunks suggests) was only
+# stabilized in Rust 1.88, so adopting it would raise this crate's effective
+# minimum toolchain for a purely stylistic gain. `chunks_exact` is correct and
+# clear. It also keeps multi2.rs's loop structure close to libaribb25's
+# multi2.c, which this crate is a port of — see NOTICE.
+[lints.clippy]
+chunks_exact_to_as_chunks = "allow"

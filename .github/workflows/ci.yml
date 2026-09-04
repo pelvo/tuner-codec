@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Runs entirely on GitHub-hosted shared runners. This crate has no
+# dependencies, no C toolchain, and no hardware requirement, so nothing here
+# needs a self-hosted runner.
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  lint:
+    name: fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust with rustfmt and clippy
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+          rustc --version && cargo --version && cargo clippy --version
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      # Formatting is checked before clippy: a formatting failure is cheap to
+      # produce and cheap to fix, and reading a clippy diff on unformatted code
+      # is unpleasant.
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      # --all-targets covers tests and examples, not just the library. The
+      # crate's own Cargo.toml allows exactly one lint with a stated reason;
+      # everything else is an error here.
+      - name: cargo clippy -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    name: build + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: cargo build
+        run: cargo build --all-targets --verbose
+
+      # Note for anyone reading a failure here: this crate's tests are inline
+      # #[cfg(test)] modules, and `cargo build` does not compile them. A
+      # reference that only tests touch will fail at this step, not the last.
+      - name: cargo test
+        run: cargo test --all-features --verbose
+
+      - name: cargo doc
+        run: cargo doc --no-deps --all-features
