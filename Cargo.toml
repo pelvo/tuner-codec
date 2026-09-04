@@ -1,0 +1,17 @@
+[package]
+name = "tuner-codec"
+version = "0.1.0"
+edition = "2021"
+description = "Broadcast standards shared by every tuner device: MPEG-TS framing, ARIB STD-B25 MULTI2, and the ISDB-T channel plan."
+license = "Apache-2.0"
+repository = "https://github.com/pelvo/tuner-codec"
+authors = ["Anthony Hung <anthonyhungck@gmail.com>"]
+readme = "README.md"
+keywords = ["arib", "isdb-t", "multi2", "mpeg-ts", "broadcast"]
+categories = ["encoding", "multimedia", "parser-implementations"]
+
+# No rusb, no USB, no vendor opcodes. Every device that is ever supported uses
+# this crate unchanged, so a dependency on hardware here is a layering bug.
+[dependencies]
+# None. MULTI2 and MPEG-TS/PES framing are implemented directly from the
+# published standards.
